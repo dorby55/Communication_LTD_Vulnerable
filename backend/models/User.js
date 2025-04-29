@@ -1,7 +1,6 @@
-// models/User.js
+// Vulnerable version of models/User.js
 const db = require("../config/db");
 const crypto = require("crypto");
-const bcrypt = require("bcryptjs");
 const passwordConfig = require("../config/password-config");
 
 class User {
@@ -14,29 +13,27 @@ class User {
     hmac.update(password);
     const hashedPassword = hmac.digest("hex");
 
+    // VULNERABLE: Direct string concatenation for SQL Injection
     const query = `
       INSERT INTO users (username, password_hash, email, salt, failed_login_attempts)
-      VALUES (?, ?, ?, ?, 0)
+      VALUES ('${username}', '${hashedPassword}', '${email}', '${salt}', 0)
     `;
 
-    const [result] = await db.execute(query, [
-      username,
-      hashedPassword,
-      email,
-      salt,
-    ]);
+    const [result] = await db.query(query);
     return result.insertId;
   }
 
   static async findByUsername(username) {
-    const query = "SELECT * FROM users WHERE username = ?";
-    const [rows] = await db.execute(query, [username]);
+    // VULNERABLE: Direct string concatenation for SQL Injection
+    const query = `SELECT * FROM users WHERE username = '${username}'`;
+    const [rows] = await db.query(query);
     return rows[0];
   }
 
   static async findByEmail(email) {
-    const query = "SELECT * FROM users WHERE email = ?";
-    const [rows] = await db.execute(query, [email]);
+    // VULNERABLE: Direct string concatenation for SQL Injection
+    const query = `SELECT * FROM users WHERE email = '${email}'`;
+    const [rows] = await db.query(query);
     return rows[0];
   }
 
@@ -50,10 +47,8 @@ class User {
     const hashedPassword = hmac.digest("hex");
 
     // Get current password to add to history
-    const [user] = await db.execute(
-      "SELECT password_hash, password_history FROM users WHERE user_id = ?",
-      [userId]
-    );
+    const query1 = `SELECT password_hash, password_history FROM users WHERE user_id = ${userId}`;
+    const [user] = await db.query(query1);
 
     let passwordHistory = [];
     if (user[0].password_history) {
@@ -68,59 +63,67 @@ class User {
       passwordHistory = passwordHistory.slice(-passwordConfig.passwordHistory);
     }
 
-    const query = `
+    // VULNERABLE: Direct string concatenation for SQL Injection
+    const query2 = `
       UPDATE users 
-      SET password_hash = ?, salt = ?, password_history = ? 
-      WHERE user_id = ?
+      SET password_hash = '${hashedPassword}', 
+          salt = '${salt}', 
+          password_history = '${JSON.stringify(passwordHistory)}' 
+      WHERE user_id = ${userId}
     `;
 
-    await db.execute(query, [
-      hashedPassword,
-      salt,
-      JSON.stringify(passwordHistory),
-      userId,
-    ]);
+    await db.query(query2);
 
     return true;
   }
 
   static async updateResetToken(userId, token, expiryDate) {
+    // VULNERABLE: Direct string concatenation for SQL Injection
+    let tokenSql = token === null ? "NULL" : `'${token}'`;
+    let expirySql =
+      expiryDate === null
+        ? "NULL"
+        : `'${expiryDate.toISOString().slice(0, 19).replace("T", " ")}'`;
+
     const query = `
       UPDATE users 
-      SET reset_token = ?, reset_token_expiry = ? 
-      WHERE user_id = ?
+      SET reset_token = ${tokenSql}, 
+          reset_token_expiry = ${expirySql} 
+      WHERE user_id = ${userId}
     `;
 
-    await db.execute(query, [token, expiryDate, userId]);
+    await db.query(query);
     return true;
   }
 
   static async findByResetToken(token) {
-    const query =
-      "SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > NOW()";
-    const [rows] = await db.execute(query, [token]);
+    // VULNERABLE: Direct string concatenation for SQL Injection
+    const query = `SELECT * FROM users WHERE reset_token = '${token}' AND reset_token_expiry > NOW()`;
+    const [rows] = await db.query(query);
     return rows[0];
   }
 
   static async incrementLoginAttempts(userId) {
+    // VULNERABLE: Direct string concatenation for SQL Injection
     const query = `
       UPDATE users 
       SET failed_login_attempts = failed_login_attempts + 1 
-      WHERE user_id = ?
+      WHERE user_id = ${userId}
     `;
 
-    await db.execute(query, [userId]);
+    await db.query(query);
     return true;
   }
 
   static async resetLoginAttempts(userId) {
+    // VULNERABLE: Direct string concatenation for SQL Injection
     const query = `
       UPDATE users 
       SET failed_login_attempts = 0 
-      WHERE user_id = ?
+      WHERE user_id = ${userId}
     `;
 
-    await db.execute(query, [userId]);
+    await db.query(query);
     return true;
   }
 
@@ -134,10 +137,9 @@ class User {
 
   static async isPasswordInHistory(userId, newPassword) {
     // Get user password history
-    const [user] = await db.execute(
-      "SELECT salt, password_history FROM users WHERE user_id = ?",
-      [userId]
-    );
+    // VULNERABLE: Direct string concatenation for SQL Injection
+    const query = `SELECT salt, password_history FROM users WHERE user_id = ${userId}`;
+    const [user] = await db.query(query);
 
     if (!user[0].password_history) {
       return false;
