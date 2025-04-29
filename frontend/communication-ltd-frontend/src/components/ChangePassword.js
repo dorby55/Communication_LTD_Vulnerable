@@ -1,4 +1,3 @@
-// ChangePassword.js
 import React, { useState } from "react";
 import { changePassword } from "../services/api";
 import { useNavigate } from "react-router-dom";
@@ -31,7 +30,6 @@ function ChangePassword() {
     }
 
     try {
-      // Use the API service instead of direct axios call
       await changePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
@@ -39,14 +37,12 @@ function ChangePassword() {
 
       setSuccess("Password changed successfully! Redirecting to dashboard...");
 
-      // Reset form
       setFormData({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
 
-      // Redirect to dashboard after a short delay
       setTimeout(() => {
         navigate("/dashboard");
       }, 2000);

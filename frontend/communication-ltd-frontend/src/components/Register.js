@@ -1,4 +1,3 @@
-// Register.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../services/api";
@@ -26,14 +25,12 @@ function Register() {
     setError("");
     setSuccess("");
 
-    // Basic validation
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
 
     try {
-      // Send registration request to API
       await registerUser({
         username: formData.username,
         password: formData.password,
@@ -42,7 +39,6 @@ function Register() {
 
       setSuccess("Registration successful! Redirecting to login...");
 
-      // Reset form
       setFormData({
         username: "",
         password: "",
@@ -50,7 +46,6 @@ function Register() {
         email: "",
       });
 
-      // Redirect to login after 2 seconds
       setTimeout(() => {
         navigate("/login");
       }, 2000);

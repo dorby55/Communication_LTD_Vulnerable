@@ -1,9 +1,7 @@
-// src/services/api.js
 import axios from "axios";
 
 const API_URL = "http://localhost:5000/api";
 
-// Create axios instance
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,7 +9,6 @@ const apiClient = axios.create({
   },
 });
 
-// Add request interceptor to include auth token in requests
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -25,7 +22,6 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Auth APIs
 export const registerUser = (userData) => {
   return apiClient.post("/register", userData);
 };
@@ -46,7 +42,6 @@ export const resetPassword = (resetData) => {
   return apiClient.post("/reset-password", resetData);
 };
 
-// Customer APIs
 export const addCustomer = (customerData) => {
   return apiClient.post("/customers", customerData);
 };

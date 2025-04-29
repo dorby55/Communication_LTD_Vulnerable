@@ -1,11 +1,8 @@
-// Vulnerable version of models/Customer.js
 const db = require("../config/db");
 
 class Customer {
   static async create(customerData, createdBy) {
     const { name, email, phone, address, packageType, sector } = customerData;
-
-    // VULNERABLE: Direct string concatenation for SQL Injection
     const query = `
       INSERT INTO customers (name, email, phone, address, package_type, sector, created_by, registration_date)
       VALUES ('${name}', '${email}', '${phone}', '${address}', '${packageType}', '${sector}', ${createdBy}, NOW())
@@ -31,7 +28,6 @@ class Customer {
   }
 
   static async findById(customerId) {
-    // VULNERABLE: Direct string concatenation for SQL Injection
     const query = `SELECT * FROM customers WHERE customer_id = ${customerId}`;
     const [rows] = await db.query(query);
     return rows[0];

@@ -1,4 +1,3 @@
-// config/password-config.js
 module.exports = {
   minLength: 10,
   requireUppercase: true,
@@ -6,7 +5,6 @@ module.exports = {
   requireNumbers: true,
   requireSpecialChars: true,
   passwordHistory: 3,
-  // List of common words that shouldn't be used in passwords
   commonWords: [
     "password",
     "welcome",

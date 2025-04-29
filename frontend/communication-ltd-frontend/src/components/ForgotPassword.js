@@ -1,4 +1,3 @@
-// ForgotPassword.js
 import React, { useState } from "react";
 import { requestPasswordReset, resetPassword } from "../services/api";
 
@@ -7,7 +6,7 @@ function ForgotPassword() {
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [step, setStep] = useState(1); // Step 1: Enter email, Step 2: Enter token and new password
+  const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -17,7 +16,6 @@ function ForgotPassword() {
     setSuccess("");
 
     try {
-      // Use API service instead of direct axios call
       await requestPasswordReset(email);
       setSuccess("A reset token has been sent to your email address.");
       setStep(2);
@@ -37,7 +35,6 @@ function ForgotPassword() {
     }
 
     try {
-      // Use API service instead of direct axios call
       await resetPassword({
         email,
         token,
@@ -46,7 +43,6 @@ function ForgotPassword() {
       setSuccess(
         "Password reset successful! You can now login with your new password."
       );
-      // Reset form
       setEmail("");
       setToken("");
       setNewPassword("");

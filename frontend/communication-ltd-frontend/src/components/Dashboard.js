@@ -1,4 +1,3 @@
-// Vulnerable version of Dashboard.js with XSS
 import React, { useState, useEffect, useCallback } from "react";
 import { addCustomer, getCustomers } from "../services/api";
 import { useNavigate } from "react-router-dom";
@@ -192,7 +191,6 @@ function Dashboard() {
             <tbody>
               {customers.map((customer) => (
                 <tr key={customer.customer_id || customer.id}>
-                  {/* VULNERABLE: Directly rendering HTML from user input */}
                   <td dangerouslySetInnerHTML={{ __html: customer.name }}></td>
                   <td>{customer.email}</td>
                   <td>{customer.phone}</td>

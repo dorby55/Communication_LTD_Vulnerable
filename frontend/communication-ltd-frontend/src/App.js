@@ -1,4 +1,3 @@
-// App.js
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -13,7 +12,6 @@ import ChangePassword from "./components/ChangePassword";
 import ForgotPassword from "./components/ForgotPassword";
 import "./App.css";
 
-// Protected Route component
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = localStorage.getItem("token") !== null;
 

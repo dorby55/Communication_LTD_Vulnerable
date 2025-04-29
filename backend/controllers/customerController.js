@@ -1,13 +1,10 @@
-// controllers/customerController.js
 const Customer = require("../models/Customer");
 
-// Add new customer
 exports.addCustomer = async (req, res) => {
   try {
     const { name, email, phone, address, packageType, sector } = req.body;
     const userId = req.user.id;
 
-    // Create customer
     const customer = await Customer.create(
       {
         name,
@@ -27,7 +24,6 @@ exports.addCustomer = async (req, res) => {
   }
 };
 
-// Get all customers
 exports.getCustomers = async (req, res) => {
   try {
     const customers = await Customer.findAll();
@@ -38,7 +34,6 @@ exports.getCustomers = async (req, res) => {
   }
 };
 
-// Get customer by ID
 exports.getCustomerById = async (req, res) => {
   try {
     const customerId = req.params.id;

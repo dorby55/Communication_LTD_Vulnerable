@@ -1,7 +1,5 @@
-// utils/emailService.js
 const nodemailer = require("nodemailer");
 
-// Configure transporter
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || "smtp.example.com",
   port: process.env.EMAIL_PORT || 587,
@@ -12,7 +10,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Send password reset email
 const sendPasswordResetEmail = async (email, token) => {
   const mailOptions = {
     from: process.env.EMAIL_FROM || "no-reply@communication-ltd.com",
