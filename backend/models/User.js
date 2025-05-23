@@ -1,19 +1,11 @@
-// Vulnerable version of models/User.js
 const db = require("../config/db");
-const crypto = require("crypto");
 const passwordConfig = require("../config/password-config");
 
 class User {
   static async create(username, password, email) {
-    const salt = crypto.randomBytes(16).toString("hex");
-
-    const hmac = crypto.createHmac("sha256", salt);
-    hmac.update(password);
-    const hashedPassword = hmac.digest("hex");
-
     const query = `
-      INSERT INTO users (username, password_hash, email, salt, failed_login_attempts)
-      VALUES ('${username}', '${hashedPassword}', '${email}', '${salt}', 0)
+      INSERT INTO users (username, password, email, failed_login_attempts)
+      VALUES ('${username}', '${password}', '${email}', 0)
     `;
 
     const [result] = await db.query(query);
@@ -26,20 +18,52 @@ class User {
     return rows[0];
   }
 
-  static async findByEmail(email) {
-    const query = `SELECT * FROM users WHERE email = '${email}'`;
+  static async findByUsernameAndPassword(username, password) {
+    const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
     const [rows] = await db.query(query);
     return rows[0];
   }
 
+  static async findByEmail(email) {
+    const query = `SELECT * FROM users WHERE email = '${email}'`;
+    console.log("SQL Query being executed:", query);
+    const [rows] = await db.query(query);
+    return rows[0];
+  }
+
+  //safe %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  // static async create(username, password, email) {
+  //   const query = `
+  //     INSERT INTO users (username, password, email, failed_login_attempts)
+  //     VALUES (?, ?, ?, 0)
+  //   `;
+  //   const [result] = await db.query(query, [username, password, email]);
+  //   return result.insertId;
+  // }
+
+  // static async findByUsername(username) {
+  //   const query = `SELECT * FROM users WHERE username = ?`;
+  //   const [rows] = await db.query(query, [username]);
+  //   return rows[0];
+  // }
+
+  // static async findByUsernameAndPassword(username, password) {
+  //   const query = `SELECT * FROM users WHERE username = ? AND password = ?`;
+  //   const [rows] = await db.query(query, [username, password]);
+  //   return rows[0];
+  // }
+
+  // static async findByEmail(email) {
+  //   const query = `SELECT * FROM users WHERE email = ?`;
+  //   const [rows] = await db.query(query, [email]);
+  //   return rows[0];
+  // }
+
+  // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
   static async updatePassword(userId, newPassword) {
-    const salt = crypto.randomBytes(16).toString("hex");
-
-    const hmac = crypto.createHmac("sha256", salt);
-    hmac.update(newPassword);
-    const hashedPassword = hmac.digest("hex");
-
-    const query1 = `SELECT password_hash, password_history FROM users WHERE user_id = ${userId}`;
+    const query1 = `SELECT password, password_history FROM users WHERE user_id = ${userId}`;
     const [user] = await db.query(query1);
 
     let passwordHistory = [];
@@ -47,7 +71,7 @@ class User {
       passwordHistory = JSON.parse(user[0].password_history);
     }
 
-    passwordHistory.push(user[0].password_hash);
+    passwordHistory.push(user[0].password);
 
     if (passwordHistory.length > passwordConfig.passwordHistory) {
       passwordHistory = passwordHistory.slice(-passwordConfig.passwordHistory);
@@ -55,8 +79,7 @@ class User {
 
     const query2 = `
       UPDATE users 
-      SET password_hash = '${hashedPassword}', 
-          salt = '${salt}', 
+      SET password = '${newPassword}',  
           password_history = '${JSON.stringify(passwordHistory)}' 
       WHERE user_id = ${userId}
     `;
@@ -71,7 +94,10 @@ class User {
     let expirySql =
       expiryDate === null
         ? "NULL"
-        : `'${expiryDate.toISOString().slice(0, 19).replace("T", " ")}'`;
+        : `'${new Date(expiryDate.getTime() + 2 * 60 * 60 * 1000)
+            .toISOString()
+            .slice(0, 19)
+            .replace("T", " ")}'`;
 
     const query = `
       UPDATE users 
@@ -85,8 +111,8 @@ class User {
   }
 
   static async findByResetToken(token) {
-    const query = `SELECT * FROM users WHERE reset_token = '${token}' AND reset_token_expiry > NOW()`;
-    const [rows] = await db.query(query);
+    const query = `SELECT * FROM users WHERE reset_token = ? AND reset_token_expiry > UTC_TIMESTAMP()`;
+    const [rows] = await db.query(query, [token]);
     return rows[0];
   }
 
@@ -112,16 +138,8 @@ class User {
     return true;
   }
 
-  static async checkPassword(inputPassword, storedHash, salt) {
-    const hmac = crypto.createHmac("sha256", salt);
-    hmac.update(inputPassword);
-    const hashedInput = hmac.digest("hex");
-
-    return hashedInput === storedHash;
-  }
-
   static async isPasswordInHistory(userId, newPassword) {
-    const query = `SELECT salt, password_history FROM users WHERE user_id = ${userId}`;
+    const query = `SELECT password_history FROM users WHERE user_id = ${userId}`;
     const [user] = await db.query(query);
 
     if (!user[0].password_history) {
@@ -130,11 +148,7 @@ class User {
 
     const passwordHistory = JSON.parse(user[0].password_history);
 
-    const hmac = crypto.createHmac("sha256", user[0].salt);
-    hmac.update(newPassword);
-    const hashedNewPass = hmac.digest("hex");
-
-    return passwordHistory.includes(hashedNewPass);
+    return passwordHistory.includes(newPassword);
   }
 }
 

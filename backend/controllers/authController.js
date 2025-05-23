@@ -18,7 +18,9 @@ exports.register = async (req, res) => {
 
     const existingEmail = await User.findByEmail(email);
     if (existingEmail) {
-      return res.status(400).json({ message: "Email already in use" });
+      return res
+        .status(400)
+        .json({ message: "Email already in use", data: existingEmail });
     }
 
     const { isValid, errors } = validatePassword(password);
@@ -28,12 +30,13 @@ exports.register = async (req, res) => {
         .json({ message: "Password requirements not met", errors });
     }
 
-    const userId = await User.create(username, password, email);
+    await User.create(username, password, email);
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
-    console.error("Registration error:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({
+      sqlMessage: err.sqlMessage || null,
+    });
   }
 };
 
@@ -41,8 +44,20 @@ exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const user = await User.findByUsername(username);
+    const user = await User.findByUsernameAndPassword(username, password);
     if (!user) {
+      const userByUsername = await User.findByUsername(username);
+      if (userByUsername) {
+        await User.incrementLoginAttempts(userByUsername.user_id);
+      }
+      if (
+        userByUsername.failed_login_attempts >= passwordConfig.maxLoginAttempts
+      ) {
+        return res.status(401).json({
+          message:
+            "Account locked due to too many failed login attempts. Please reset your password.",
+        });
+      }
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
@@ -51,17 +66,6 @@ exports.login = async (req, res) => {
         message:
           "Account locked due to too many failed login attempts. Please reset your password.",
       });
-    }
-
-    const isMatch = await User.checkPassword(
-      password,
-      user.password_hash,
-      user.salt
-    );
-    if (!isMatch) {
-      await User.incrementLoginAttempts(user.user_id);
-
-      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     await User.resetLoginAttempts(user.user_id);
@@ -98,11 +102,7 @@ exports.changePassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const isMatch = await User.checkPassword(
-      currentPassword,
-      user.password_hash,
-      user.salt
-    );
+    const isMatch = currentPassword === user.password;
     if (!isMatch) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
@@ -143,7 +143,7 @@ exports.forgotPassword = async (req, res) => {
     const resetToken = generateResetToken();
 
     const tokenExpiry = new Date();
-    tokenExpiry.setHours(tokenExpiry.getHours() + 1);
+    tokenExpiry.setHours(tokenExpiry.getHours() + 2);
 
     await User.updateResetToken(user.user_id, resetToken, tokenExpiry);
 

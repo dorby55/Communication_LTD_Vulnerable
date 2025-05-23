@@ -2,20 +2,9 @@ const Customer = require("../models/Customer");
 
 exports.addCustomer = async (req, res) => {
   try {
-    const { name, email, phone, address, packageType, sector } = req.body;
-    const userId = req.user.id;
+    const { id, first_name, last_name } = req.body;
 
-    const customer = await Customer.create(
-      {
-        name,
-        email,
-        phone,
-        address,
-        packageType,
-        sector,
-      },
-      userId
-    );
+    const customer = await Customer.create({ id, first_name, last_name });
 
     res.status(201).json(customer);
   } catch (err) {

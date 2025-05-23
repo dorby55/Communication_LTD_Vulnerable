@@ -50,14 +50,33 @@ function Register() {
         navigate("/login");
       }, 2000);
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      const data = err.response?.data;
+      const fullErrorMessage = `
+    Error: ${data?.sqlMessage}
+  `;
+      if (err.response) {
+        console.error("Status:", err.response.status);
+        console.error("Data:", err.response.data);
+        console.error("Headers:", err.response.headers);
+      } else {
+        console.error("Error:", err.message);
+      }
+
+      setError(fullErrorMessage);
     }
   };
 
   return (
     <div className="register-container">
       <h2>Register New Account</h2>
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div
+          className="error-message"
+          style={{ whiteSpace: "pre-wrap", color: "red" }}
+        >
+          {error}
+        </div>
+      )}
       {success && <div className="success-message">{success}</div>}
 
       <form onSubmit={handleSubmit}>
@@ -75,7 +94,7 @@ function Register() {
         <div className="form-group">
           <label>Email:</label>
           <input
-            type="email"
+            type="text"
             name="email"
             value={formData.email}
             onChange={handleChange}

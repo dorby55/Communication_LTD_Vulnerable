@@ -166,3 +166,25 @@ button:hover {
 .customers-list th {
   background-color: #f2f2f2;
 }
+
+.search-customer-section {
+  margin-top: 2rem;
+}
+
+.search-customer-section table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.search-customer-section th,
+.search-customer-section td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.search-customer-section th {
+  background-color: #f2f2f2;
+}
+
