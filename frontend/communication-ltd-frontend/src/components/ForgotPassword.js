@@ -17,7 +17,9 @@ function ForgotPassword() {
 
     try {
       await requestPasswordReset(email);
-      setSuccess("A reset token has been sent to your email address.");
+      setSuccess(
+        "If an account with that email exists, a reset token has been sent to your email address."
+      );
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to send reset token");

@@ -26,41 +26,9 @@ class User {
 
   static async findByEmail(email) {
     const query = `SELECT * FROM users WHERE email = '${email}'`;
-    console.log("SQL Query being executed:", query);
     const [rows] = await db.query(query);
     return rows[0];
   }
-
-  //safe %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-  // static async create(username, password, email) {
-  //   const query = `
-  //     INSERT INTO users (username, password, email, failed_login_attempts)
-  //     VALUES (?, ?, ?, 0)
-  //   `;
-  //   const [result] = await db.query(query, [username, password, email]);
-  //   return result.insertId;
-  // }
-
-  // static async findByUsername(username) {
-  //   const query = `SELECT * FROM users WHERE username = ?`;
-  //   const [rows] = await db.query(query, [username]);
-  //   return rows[0];
-  // }
-
-  // static async findByUsernameAndPassword(username, password) {
-  //   const query = `SELECT * FROM users WHERE username = ? AND password = ?`;
-  //   const [rows] = await db.query(query, [username, password]);
-  //   return rows[0];
-  // }
-
-  // static async findByEmail(email) {
-  //   const query = `SELECT * FROM users WHERE email = ?`;
-  //   const [rows] = await db.query(query, [email]);
-  //   return rows[0];
-  // }
-
-  // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   static async updatePassword(userId, newPassword) {
     const query1 = `SELECT password, password_history FROM users WHERE user_id = ${userId}`;
