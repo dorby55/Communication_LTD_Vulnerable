@@ -58,11 +58,16 @@ DB_HOST=localhost
 DB_USER=your_mysql_username
 DB_PASSWORD=your_mysql_password
 DB_NAME=communication_ltd
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your_email_user
+EMAIL_PASS=your_email_pass
+EMAIL_FROM="Communication LTD <your_email_user>"
 PORT=5000
 ```
 
 ### 4. Create and Initialize the MySQL Database
-Option A: Using the Terminal (if mysql is available)
+#### Option A: Using the Terminal (if mysql is available)
 Make sure MySQL is running, then run this inside the backend/ folder:
 
 ```bash
@@ -70,7 +75,7 @@ Get-Content .\schema.sql | mysql -u your_mysql_username -p
 ```
 Replace your_mysql_username with your MySQL username (e.g., root). You will be prompted for your password.
 
-Option B: Using MySQL Workbench (GUI Method)
+#### Option B: Using MySQL Workbench (GUI Method)
 If the terminal command doesn’t work, you can import the schema manually:
 
 Open MySQL Workbench
